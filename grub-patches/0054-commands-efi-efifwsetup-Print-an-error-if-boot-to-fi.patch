@@ -1,0 +1,66 @@
+From 4d1ac1cf0a3aba12c218d7d5a707f8d67252d4a5 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Thu, 18 Aug 2022 13:50:12 -0400
+Subject: [PATCH] commands/efi/efifwsetup: Print an error if boot to firmware
+ setup is not supported
+
+The "fwsetup" command is only registered if the firmware supports booting
+to the firmware setup UI. But it could be possible that the GRUB config
+already contains a "fwsetup" entry, because it was generated in a machine
+that has support for this feature.
+
+To prevent users getting an error like:
+
+    error: ../../grub-core/script/function.c:109:can't find command `fwsetup'.
+
+if it is not supported by the firmware, let's just always register the
+command but print a more accurate message if the firmware doesn't
+support this option.
+
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/commands/efi/efifwsetup.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/grub-core/commands/efi/efifwsetup.c b/grub-core/commands/efi/efifwsetup.c
+index eaca032838..ef4c3bfc2e 100644
+--- a/grub-core/commands/efi/efifwsetup.c
++++ b/grub-core/commands/efi/efifwsetup.c
+@@ -27,6 +27,8 @@
+ 
+ GRUB_MOD_LICENSE ("GPLv3+");
+ 
++static grub_efi_boolean_t efifwsetup_is_supported (void);
++
+ static grub_err_t
+ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
+ 		  int argc __attribute__ ((unused)),
+@@ -38,6 +40,10 @@ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
+   grub_size_t oi_size;
+   grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+ 
++  if (!efifwsetup_is_supported ())
++	  return grub_error (GRUB_ERR_INVALID_COMMAND,
++			     N_("reboot to firmware setup is not supported by the current firmware"));
++
+   grub_efi_get_variable ("OsIndications", &global, &oi_size,
+ 			 (void **) &old_os_indications);
+ 
+@@ -77,10 +83,8 @@ efifwsetup_is_supported (void)
+ 
+ GRUB_MOD_INIT (efifwsetup)
+ {
+-  if (efifwsetup_is_supported ())
+-    cmd = grub_register_command ("fwsetup", grub_cmd_fwsetup, NULL,
+-				 N_("Reboot into firmware setup menu."));
+-
++  cmd = grub_register_command ("fwsetup", grub_cmd_fwsetup, NULL,
++                               N_("Reboot into firmware setup menu."));
+ }
+ 
+ GRUB_MOD_FINI (efifwsetup)
+-- 
+2.42.1
+

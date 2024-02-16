@@ -1,0 +1,52 @@
+From f24d630c2e5326802472c4c142df66ce5c12261c Mon Sep 17 00:00:00 2001
+From: Robbie Harwood <rharwood@redhat.com>
+Date: Tue, 15 Mar 2022 14:05:44 -0400
+Subject: [PATCH] configure: Fix various new autotools warnings
+
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ configure.ac | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index b93a3addbb..e1c3a83139 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -36,6 +36,7 @@ dnl description of the relationships between them.
+ 
+ AC_INIT([GRUB],[2.06],[bug-grub@gnu.org])
+ 
++AC_USE_SYSTEM_EXTENSIONS
+ AC_CONFIG_AUX_DIR([build-aux])
+ 
+ # We don't want -g -O2 by default in CFLAGS
+@@ -51,7 +52,7 @@ program_prefix="${save_program_prefix}"
+ AM_INIT_AUTOMAKE([1.11])
+ AC_PREREQ(2.64)
+ AC_CONFIG_SRCDIR([include/grub/dl.h])
+-AC_CONFIG_HEADER([config-util.h])
++AC_CONFIG_HEADERS([config-util.h])
+ 
+ # Explicitly check for pkg-config early on, since otherwise conditional
+ # calls are problematic.
+@@ -333,7 +334,7 @@ fi
+ AC_PROG_RANLIB
+ AC_PROG_INSTALL
+ AC_PROG_AWK
+-AC_PROG_LEX
++AC_PROG_LEX([noyywrap])
+ AC_PROG_YACC
+ AC_PROG_MAKE_SET
+ AC_PROG_MKDIR_P
+@@ -369,7 +370,6 @@ test "x$GCC" = xyes || AC_MSG_ERROR([GCC is required])
+ 
+ AC_CHECK_PROG(HAVE_CXX, $CXX, yes, no)
+ 
+-AC_GNU_SOURCE
+ AM_GNU_GETTEXT([external])
+ AM_GNU_GETTEXT_VERSION([0.18.3])
+ AC_SYS_LARGEFILE
+-- 
+2.42.1
+

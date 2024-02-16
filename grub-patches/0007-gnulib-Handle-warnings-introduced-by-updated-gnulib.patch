@@ -1,0 +1,105 @@
+From e0593bafbd8ed2650bc2aff32df2ef457f79faf8 Mon Sep 17 00:00:00 2001
+From: Robbie Harwood <rharwood@redhat.com>
+Date: Tue, 15 Mar 2022 14:05:43 -0400
+Subject: [PATCH] gnulib: Handle warnings introduced by updated gnulib
+
+- Fix type of size variable in luks2_verify_key()
+- Avoid redefinition of SIZE_MAX and ATTRIBUTE_ERROR
+- Work around gnulib's int types on older compilers
+
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ config.h.in                       | 5 +++++
+ grub-core/disk/luks2.c            | 4 ++--
+ grub-core/lib/posix_wrap/limits.h | 6 +++++-
+ include/grub/compiler.h           | 4 ++--
+ include/grub/list.h               | 2 +-
+ 5 files changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/config.h.in b/config.h.in
+index d0f4f8609c..0fca0597d1 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -145,4 +145,9 @@ typedef __UINT_FAST32_TYPE__ uint_fast32_t;
+ #    define abort __builtin_trap
+ #  endif /* !_GL_INLINE_HEADER_BEGIN */
+ 
++/* gnulib doesn't build cleanly with older compilers. */
++#  if __GNUC__ < 11
++_Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
++#  endif
++
+ #endif
+diff --git a/grub-core/disk/luks2.c b/grub-core/disk/luks2.c
+index 371a53b837..c917a5f91e 100644
+--- a/grub-core/disk/luks2.c
++++ b/grub-core/disk/luks2.c
+@@ -389,7 +389,7 @@ luks2_verify_key (grub_luks2_digest_t *d, grub_uint8_t *candidate_key,
+ {
+   grub_uint8_t candidate_digest[GRUB_CRYPTODISK_MAX_KEYLEN];
+   grub_uint8_t digest[GRUB_CRYPTODISK_MAX_KEYLEN], salt[GRUB_CRYPTODISK_MAX_KEYLEN];
+-  grub_size_t saltlen = sizeof (salt), digestlen = sizeof (digest);
++  idx_t saltlen = sizeof (salt), digestlen = sizeof (digest);
+   const gcry_md_spec_t *hash;
+   gcry_err_code_t gcry_ret;
+ 
+@@ -428,7 +428,7 @@ luks2_decrypt_key (grub_uint8_t *out_key,
+   grub_uint8_t area_key[GRUB_CRYPTODISK_MAX_KEYLEN];
+   grub_uint8_t salt[GRUB_CRYPTODISK_MAX_KEYLEN];
+   grub_uint8_t *split_key = NULL;
+-  grub_size_t saltlen = sizeof (salt);
++  idx_t saltlen = sizeof (salt);
+   char cipher[32], *p;
+   const gcry_md_spec_t *hash;
+   gcry_err_code_t gcry_ret;
+diff --git a/grub-core/lib/posix_wrap/limits.h b/grub-core/lib/posix_wrap/limits.h
+index 7217138ffd..26918c8a01 100644
+--- a/grub-core/lib/posix_wrap/limits.h
++++ b/grub-core/lib/posix_wrap/limits.h
+@@ -25,7 +25,11 @@
+ #define USHRT_MAX GRUB_USHRT_MAX
+ #define UINT_MAX GRUB_UINT_MAX
+ #define ULONG_MAX GRUB_ULONG_MAX
+-#define SIZE_MAX GRUB_SIZE_MAX
++
++/* gnulib also defines this type */
++#ifndef SIZE_MAX
++#  define SIZE_MAX GRUB_SIZE_MAX
++#endif
+ 
+ #define SCHAR_MIN GRUB_SCHAR_MIN
+ #define SCHAR_MAX GRUB_SCHAR_MAX
+diff --git a/include/grub/compiler.h b/include/grub/compiler.h
+index 8f3be3ae70..0c5519387b 100644
+--- a/include/grub/compiler.h
++++ b/include/grub/compiler.h
+@@ -30,10 +30,10 @@
+ 
+ /* Does this compiler support compile-time error attributes? */
+ #if GNUC_PREREQ(4,3)
+-#  define ATTRIBUTE_ERROR(msg) \
++#  define GRUB_ATTRIBUTE_ERROR(msg) \
+ 	__attribute__ ((__error__ (msg)))
+ #else
+-#  define ATTRIBUTE_ERROR(msg) __attribute__ ((noreturn))
++#  define GRUB_ATTRIBUTE_ERROR(msg) __attribute__ ((noreturn))
+ #endif
+ 
+ #if GNUC_PREREQ(4,4)
+diff --git a/include/grub/list.h b/include/grub/list.h
+index b13acb9624..21f4b4b44a 100644
+--- a/include/grub/list.h
++++ b/include/grub/list.h
+@@ -40,7 +40,7 @@ void EXPORT_FUNC(grub_list_remove) (grub_list_t item);
+ 
+ static inline void *
+ grub_bad_type_cast_real (int line, const char *file)
+-     ATTRIBUTE_ERROR ("bad type cast between incompatible grub types");
++     GRUB_ATTRIBUTE_ERROR ("bad type cast between incompatible grub types");
+ 
+ static inline void *
+ grub_bad_type_cast_real (int line, const char *file)
+-- 
+2.42.1
+

@@ -1,0 +1,107 @@
+From 87403a620570d3fddebeafc1b142485a91955808 Mon Sep 17 00:00:00 2001
+From: Robbie Harwood <rharwood@redhat.com>
+Date: Tue, 15 Mar 2022 14:05:41 -0400
+Subject: [PATCH] gnulib: Drop no-abort.patch
+
+Originally added in commit db7337a3d (grub-core/lib/posix_wrap/stdlib.h
+(abort): Removed), this patched out all relevant invocations of abort()
+in gnulib. While it was not documented why at the time, testing suggests
+that there's no abort() implementation available for gnulib to use.
+
+gnulib's position is that the use of abort() is correct here, since it
+happens when input violates a "shall" from POSIX. Additionally, the
+code in question is probably not reachable. Since abort() is more
+friendly to user-space, they prefer to make no change, so we can just
+carry a define instead (suggested by Paul Eggert).
+
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ bootstrap.conf                              |  2 +-
+ conf/Makefile.extra-dist                    |  1 -
+ config.h.in                                 | 10 ++++++++
+ grub-core/lib/gnulib-patches/no-abort.patch | 26 ---------------------
+ 4 files changed, 11 insertions(+), 28 deletions(-)
+ delete mode 100644 grub-core/lib/gnulib-patches/no-abort.patch
+
+diff --git a/bootstrap.conf b/bootstrap.conf
+index 2384701bc5..fd08a9f6d6 100644
+--- a/bootstrap.conf
++++ b/bootstrap.conf
+@@ -81,7 +81,7 @@ cp -a INSTALL INSTALL.grub
+ bootstrap_post_import_hook () {
+   set -e
+   for patchname in fix-null-deref fix-null-state-deref fix-regcomp-uninit-token \
+-      fix-regexec-null-deref fix-uninit-structure fix-unused-value fix-width no-abort; do
++      fix-regexec-null-deref fix-uninit-structure fix-unused-value fix-width; do
+     patch -d grub-core/lib/gnulib -p2 \
+       < "grub-core/lib/gnulib-patches/$patchname.patch"
+   done
+diff --git a/conf/Makefile.extra-dist b/conf/Makefile.extra-dist
+index 15a9b74e94..4ddc3c8f72 100644
+--- a/conf/Makefile.extra-dist
++++ b/conf/Makefile.extra-dist
+@@ -35,7 +35,6 @@ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regexec-null-deref.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-uninit-structure.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-unused-value.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-width.patch
+-EXTRA_DIST += grub-core/lib/gnulib-patches/no-abort.patch
+ 
+ EXTRA_DIST += grub-core/lib/libgcrypt
+ EXTRA_DIST += grub-core/lib/libgcrypt-grub/mpi/generic
+diff --git a/config.h.in b/config.h.in
+index 965eaffce8..209e27449e 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -66,6 +66,16 @@
+ 
+ #  ifndef _GL_INLINE_HEADER_BEGIN
+ #    define _GL_ATTRIBUTE_CONST __attribute__ ((const))
++
++/*
++ * We don't have an abort() for gnulib to call in regexp.  Because gnulib is
++ * built as a separate object that is then linked with, it doesn't have any
++ * of our headers or functions around to use - so we unfortunately can't
++ * print anything.  Builds of emu include the system's stdlib, which includes
++ * a prototype for abort(), so leave this as a macro that doesn't take
++ * arguments.
++ */
++#    define abort __builtin_trap
+ #  endif /* !_GL_INLINE_HEADER_BEGIN */
+ 
+ #endif
+diff --git a/grub-core/lib/gnulib-patches/no-abort.patch b/grub-core/lib/gnulib-patches/no-abort.patch
+deleted file mode 100644
+index e469c4762e..0000000000
+--- a/grub-core/lib/gnulib-patches/no-abort.patch
++++ /dev/null
+@@ -1,26 +0,0 @@
+-diff --git a/lib/regcomp.c b/lib/regcomp.c
+-index cc85f35ac..de45ebb5c 100644
+---- a/lib/regcomp.c
+-+++ b/lib/regcomp.c
+-@@ -528,9 +528,9 @@ regerror (int errcode, const regex_t *__restrict preg, char *__restrict errbuf,
+-        to this routine.  If we are given anything else, or if other regex
+-        code generates an invalid error code, then the program has a bug.
+-        Dump core so we can fix it.  */
+--    abort ();
+--
+--  msg = gettext (__re_error_msgid + __re_error_msgid_idx[errcode]);
+-+    msg = gettext ("unknown regexp error");
+-+  else
+-+    msg = gettext (__re_error_msgid + __re_error_msgid_idx[errcode]);
+- 
+-   msg_size = strlen (msg) + 1; /* Includes the null.  */
+- 
+-@@ -1136,7 +1136,7 @@ optimize_utf8 (re_dfa_t *dfa)
+- 	}
+- 	break;
+-       default:
+--	abort ();
+-+	break;
+-       }
+- 
+-   if (mb_chars || has_period)
+-- 
+2.42.1
+

@@ -1,0 +1,27 @@
+From fb127565b1d7500c0802d0b1b64e2b866973f9f8 Mon Sep 17 00:00:00 2001
+From: Egor Ignatov <egori@altlinux.org>
+Date: Thu, 1 Feb 2024 12:02:55 +0300
+Subject: [PATCH] Bump grub SBAT revocation to 4
+
+---
+ include/sbat_var_defs.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/sbat_var_defs.h b/include/sbat_var_defs.h
+index f8cba02..ecf7d0a 100644
+--- a/include/sbat_var_defs.h
++++ b/include/sbat_var_defs.h
+@@ -58,8 +58,8 @@
+ /*
+  * Revocations for January 2024 shim CVEs
+  */
+-#define SBAT_VAR_LATEST_DATE "2024010900"
+-#define SBAT_VAR_LATEST_REVOCATIONS "shim,4\ngrub,3\ngrub.debian,4\n"
++#define SBAT_VAR_LATEST_DATE "2024020100"
++#define SBAT_VAR_LATEST_REVOCATIONS "shim,4\ngrub,4\n"
+ #define SBAT_VAR_LATEST \
+ 	SBAT_VAR_SIG SBAT_VAR_VERSION SBAT_VAR_LATEST_DATE "\n" \
+ 	SBAT_VAR_LATEST_REVOCATIONS
+-- 
+2.42.1
+

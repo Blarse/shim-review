@@ -1,0 +1,96 @@
+From fce5406fac43c9b90eb678787771a4ef9dfb3366 Mon Sep 17 00:00:00 2001
+From: Egor Ignatov <egori@altlinux.org>
+Date: Mon, 10 Jul 2023 21:02:55 +0300
+Subject: [PATCH] alt: suppress grub warnings
+
+See: https://bugzilla.altlinux.org/25778
+---
+ grub-core/kern/main.c         |  2 +-
+ grub-core/loader/i386/linux.c | 16 ++++++++--------
+ grub-core/normal/menu.c       |  2 +-
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/grub-core/kern/main.c b/grub-core/kern/main.c
+index 73967e2f5b..b3b4f42f0c 100644
+--- a/grub-core/kern/main.c
++++ b/grub-core/kern/main.c
+@@ -272,7 +272,7 @@ grub_main (void)
+ 
+   /* Hello.  */
+   grub_setcolorstate (GRUB_TERM_COLOR_HIGHLIGHT);
+-  grub_printf ("Welcome to GRUB!\n\n");
++  //grub_printf ("Welcome to GRUB!\n\n");
+   grub_setcolorstate (GRUB_TERM_COLOR_STANDARD);
+ 
+   /* Init verifiers API. */
+diff --git a/grub-core/loader/i386/linux.c b/grub-core/loader/i386/linux.c
+index 9f74a96b19..d2b520f51c 100644
+--- a/grub-core/loader/i386/linux.c
++++ b/grub-core/loader/i386/linux.c
+@@ -895,20 +895,20 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+ 	  case 0:
+ 	  case GRUB_LINUX_VID_MODE_NORMAL:
+ 	    grub_env_set ("gfxpayload", "text");
+-	    grub_printf_ (N_("%s is deprecated. "
++	    /*grub_printf_ (N_("%s is deprecated. "
+ 			     "Use set gfxpayload=%s before "
+ 			     "linux command instead.\n"),
+-			  argv[i], "text");
++			  argv[i], "text");*/
+ 	    break;
+ 
+ 	  case 1:
+ 	  case GRUB_LINUX_VID_MODE_EXTENDED:
+ 	    /* FIXME: support 80x50 text. */
+ 	    grub_env_set ("gfxpayload", "text");
+-	    grub_printf_ (N_("%s is deprecated. "
++	    /*grub_printf_ (N_("%s is deprecated. "
+ 			     "Use set gfxpayload=%s before "
+ 			     "linux command instead.\n"),
+-			  argv[i], "text");
++			  argv[i], "text");*/
+ 	    break;
+ 	  default:
+ 	    /* Ignore invalid values.  */
+@@ -918,10 +918,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+ 		grub_env_set ("gfxpayload", "text");
+ 		/* TRANSLATORS: "x" has to be entered in, like an identifier,
+ 		   so please don't use better Unicode codepoints.  */
+-		grub_printf_ (N_("%s is deprecated. VGA mode %d isn't recognized. "
++		/*grub_printf_ (N_("%s is deprecated. VGA mode %d isn't recognized. "
+ 				 "Use set gfxpayload=WIDTHxHEIGHT[xDEPTH] "
+ 				 "before linux command instead.\n"),
+-			     argv[i], vid_mode);
++			     argv[i], vid_mode);*/
+ 		break;
+ 	      }
+ 
+@@ -935,10 +935,10 @@ grub_cmd_linux (grub_command_t cmd __attribute__ ((unused)),
+ 	    if (! buf)
+ 	      goto fail;
+ 
+-	    grub_printf_ (N_("%s is deprecated. "
++	    /*grub_printf_ (N_("%s is deprecated. "
+ 			     "Use set gfxpayload=%s before "
+ 			     "linux command instead.\n"),
+-			 argv[i], buf);
++			 argv[i], buf);*/
+ 	    err = grub_env_set ("gfxpayload", buf);
+ 	    grub_free (buf);
+ 	    if (err)
+diff --git a/grub-core/normal/menu.c b/grub-core/normal/menu.c
+index 8397886fa0..3dd0fe5c9d 100644
+--- a/grub-core/normal/menu.c
++++ b/grub-core/normal/menu.c
+@@ -341,7 +341,7 @@ grub_menu_execute_with_fallback (grub_menu_t menu,
+ {
+   int fallback_entry;
+ 
+-  callback->notify_booting (entry, callback_data);
++  //callback->notify_booting (entry, callback_data);
+ 
+   grub_menu_execute_entry (entry, 1);
+ 
+-- 
+2.42.1
+

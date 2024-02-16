@@ -1,0 +1,48 @@
+From 28210fe0fbd80416bb11a01b681ef1c613df0f3f Mon Sep 17 00:00:00 2001
+From: Egor Ignatov <egori@altlinux.org>
+Date: Tue, 18 Jul 2023 17:02:02 +0300
+Subject: [PATCH] ALT: Revert "kern/efi/sb: Enforce verification of font files"
+
+This reverts commit 80ec3cf5dc396aaeb18dbc582c4ac5331439e349.
+
+Revert this commit as it forbids loading fonts not embedded in the efi
+image if Secure Boot enabled.  This patch only reduces the attack
+surface [1], but no actual vulnerabilities have been discovered.
+
+Come back to this when there will be ability to sign and load external
+fonts (ex. [2]).
+
+[1] https://lists.gnu.org/archive/html/grub-devel/2022-11/msg00067.html
+[2] https://lists.gnu.org/archive/html/grub-devel/2022-12/msg00070.html
+---
+ grub-core/kern/efi/sb.c   | 1 +
+ grub-core/kern/lockdown.c | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/grub-core/kern/efi/sb.c b/grub-core/kern/efi/sb.c
+index db42c2539f..89c4bb3fd1 100644
+--- a/grub-core/kern/efi/sb.c
++++ b/grub-core/kern/efi/sb.c
+@@ -145,6 +145,7 @@ shim_lock_verifier_init (grub_file_t io __attribute__ ((unused)),
+     case GRUB_FILE_TYPE_PRINT_BLOCKLIST:
+     case GRUB_FILE_TYPE_TESTLOAD:
+     case GRUB_FILE_TYPE_GET_SIZE:
++    case GRUB_FILE_TYPE_FONT:
+     case GRUB_FILE_TYPE_ZFS_ENCRYPTION_KEY:
+     case GRUB_FILE_TYPE_CAT:
+     case GRUB_FILE_TYPE_HEXCAT:
+diff --git a/grub-core/kern/lockdown.c b/grub-core/kern/lockdown.c
+index af6d493cd3..0bc70fd42d 100644
+--- a/grub-core/kern/lockdown.c
++++ b/grub-core/kern/lockdown.c
+@@ -51,7 +51,6 @@ lockdown_verifier_init (grub_file_t io __attribute__ ((unused)),
+     case GRUB_FILE_TYPE_EFI_CHAINLOADED_IMAGE:
+     case GRUB_FILE_TYPE_ACPI_TABLE:
+     case GRUB_FILE_TYPE_DEVICE_TREE_IMAGE:
+-    case GRUB_FILE_TYPE_FONT:
+       *flags = GRUB_VERIFY_FLAGS_DEFER_AUTH;
+ 
+       /* Fall through. */
+-- 
+2.42.1
+

@@ -1,0 +1,27 @@
+From 205365fc6572ca43fa52b6f58d041e1afbc71178 Mon Sep 17 00:00:00 2001
+From: Egor Ignatov <egori@altlinux.org>
+Date: Mon, 10 Jul 2023 21:05:19 +0300
+Subject: [PATCH] alt: interrupt grub booting process if shift key pressed
+
+---
+ util/grub.d/00_header.in | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/util/grub.d/00_header.in b/util/grub.d/00_header.in
+index 5e073a0c67..c4a53ec445 100644
+--- a/util/grub.d/00_header.in
++++ b/util/grub.d/00_header.in
+@@ -312,6 +312,10 @@ EOF
+     fi
+     cat << EOF
+ fi
++# interrupt grub booting process if shift key pressed
++if keystatus --shift;then
++  set timeout=-1
++fi
+ EOF
+ }
+ 
+-- 
+2.42.1
+

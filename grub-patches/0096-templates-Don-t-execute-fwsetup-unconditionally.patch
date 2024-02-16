@@ -1,0 +1,58 @@
+From 3786e9a449c826df8a8df2c701175925e4df03b5 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javierm@redhat.com>
+Date: Wed, 31 Aug 2022 00:30:31 +0200
+Subject: [PATCH] templates: Don't execute fwsetup unconditionally
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Commit 26031d3b1016 ("efi: Don't display a uefi-firmware entry if it's not
+supported") added a new `fwsetup --is-supported` option that could be used
+to check if the firmware allows to enter into a firmware user interface.
+
+That option was then used by /etc/grub.d/30_uefi-firmware script to figure
+out whether a `fwsetup` entry should be included or not in the boot menu.
+
+But unfortunately, old GRUB images will fail to boot if are booted with an
+updated GRUB config file. Since the `fwsetup --is-supported` call would be
+taken as a plan `fwsetup` with no options.
+
+This could either lead to a crash (i.e: on legacy BIOS systems where that
+is not supported) or to the machine entering into the firmware settings.
+
+To prevent that, let's partially revert the mentioned commit and keep the
+old logic that didn't execute the `fwsetup` command and just included an
+entry for it if GRUB is executed in an EFI platform.
+
+See: https://lists.gnu.org/archive/html/grub-devel/2022-08/msg00374.html
+
+Fixes: 26031d3b1016 ("efi: Don't display a uefi-firmware entry if it's not
+supported")
+Reported-by: Philip Müller <philm@manjaro.org>
+Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
+---
+ util/grub.d/30_uefi-firmware.in | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/util/grub.d/30_uefi-firmware.in b/util/grub.d/30_uefi-firmware.in
+index 1c2365ddbd..b6041b55e2 100644
+--- a/util/grub.d/30_uefi-firmware.in
++++ b/util/grub.d/30_uefi-firmware.in
+@@ -32,11 +32,8 @@ gettext_printf "Adding boot menu entry for UEFI Firmware Settings ...\n" >&2
+ 
+ cat << EOF
+ if [ "\$grub_platform" = "efi" ]; then
+-	fwsetup --is-supported
+-	if [ "\$?" = 0 ]; then
+-		menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
+-			fwsetup
+-		}
+-	fi
++	menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
++		fwsetup
++	}
+ fi
+ EOF
+-- 
+2.42.1
+

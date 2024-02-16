@@ -1,0 +1,86 @@
+From a17935dab5ceed16173e4946eeadf7fcf3c902b5 Mon Sep 17 00:00:00 2001
+From: Leonid Krivoshein <klark@altlinux.org>
+Date: Sun, 13 May 2018 04:31:16 +0300
+Subject: [PATCH] Write to read-only grub device problem fixed.
+
+---
+ util/grub-mkconfig_lib.in | 20 ++++++++++++++++++++
+ util/grub.d/00_header.in  | 10 +++++-----
+ 2 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/util/grub-mkconfig_lib.in b/util/grub-mkconfig_lib.in
+index 301d1ac229..239aa6add8 100644
+--- a/util/grub-mkconfig_lib.in
++++ b/util/grub-mkconfig_lib.in
+@@ -109,6 +109,26 @@ convert_system_path_to_grub_path ()
+   echo "${drive}${relative_path}"
+ }
+ 
++save_var ()
++{
++  for abstraction in dummy `"${grub_probe}" --device ${GRUB_DEVICE} --target=abstraction`; do
++    case "$abstraction" in
++    diskfilter|lvm)
++      echo "# GRUB lacks write support for $abstraction"
++      return;;
++    esac
++  done
++
++  fs="`"${grub_probe}" --device ${GRUB_DEVICE} --target=fs`"
++  case "$fs" in
++  btrfs|cpiofs|newc|odc|romfs|squash4|tarfs|zfs)
++    echo "# GRUB lacks write support for $fs"
++    return;;
++  esac
++
++  echo "save_env $1"
++}
++
+ save_default_entry ()
+ {
+   if [ "x${GRUB_SAVEDEFAULT}" = "xtrue" ] ; then
+diff --git a/util/grub.d/00_header.in b/util/grub.d/00_header.in
+index c4a53ec445..ea3c7e4476 100644
+--- a/util/grub.d/00_header.in
++++ b/util/grub.d/00_header.in
+@@ -54,7 +54,7 @@ if cmostest $GRUB_BUTTON_CMOS_ADDRESS ; then
+ elif [ "\${next_entry}" ] ; then
+    set default="\${next_entry}"
+    set next_entry=
+-   save_env next_entry
++   $(save_var next_entry)
+    set boot_once=true
+ else
+    set default="${GRUB_DEFAULT}"
+@@ -65,7 +65,7 @@ else
+ if [ "\${next_entry}" ] ; then
+    set default="\${next_entry}"
+    set next_entry=
+-   save_env next_entry
++   $(save_var next_entry)
+    set boot_once=true
+ else
+    set default="${GRUB_DEFAULT}"
+@@ -84,16 +84,16 @@ export menuentry_id_option
+ 
+ if [ "\${prev_saved_entry}" ]; then
+   set saved_entry="\${prev_saved_entry}"
+-  save_env saved_entry
++  $(save_var saved_entry)
+   set prev_saved_entry=
+-  save_env prev_saved_entry
++  $(save_var prev_saved_entry)
+   set boot_once=true
+ fi
+ 
+ function savedefault {
+   if [ -z "\${boot_once}" ]; then
+     saved_entry="\${chosen}"
+-    save_env saved_entry
++    $(save_var saved_entry)
+   fi
+ }
+ 
+-- 
+2.42.1
+

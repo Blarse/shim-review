@@ -1,0 +1,37 @@
+From bf55478ee2d63ea9c3e1357630c10c6897ec8394 Mon Sep 17 00:00:00 2001
+From: Sergey Bolshakov <sbolshakov@altlinux.org>
+Date: Fri, 9 Jun 2017 12:57:11 +0300
+Subject: [PATCH] grub-install: set "altlinux" the default bootloader_id
+
+---
+ util/grub-install.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/util/grub-install.c b/util/grub-install.c
+index eb8d519a98..779b1aa3db 100644
+--- a/util/grub-install.c
++++ b/util/grub-install.c
+@@ -897,19 +897,10 @@ main (int argc, char *argv[])
+ 
+   grub_util_load_config (&config);
+ 
+-  if (!bootloader_id && config.grub_distributor)
+-    {
+-      char *ptr;
+-      bootloader_id = xstrdup (config.grub_distributor);
+-      for (ptr = bootloader_id; *ptr && *ptr != ' '; ptr++)
+-	if (*ptr >= 'A' && *ptr <= 'Z')
+-	  *ptr = *ptr - 'A' + 'a';
+-      *ptr = '\0';
+-    }
+   if (!bootloader_id || bootloader_id[0] == '\0')
+     {
+       free (bootloader_id);
+-      bootloader_id = xstrdup ("grub");
++      bootloader_id = xstrdup ("altlinux");
+     }
+ 
+   if (!grub_install_source_directory)
+-- 
+2.42.1
+

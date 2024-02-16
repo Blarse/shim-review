@@ -1,0 +1,25 @@
+From 35e47dcf8ea3fad6933126c62aeec7bcf069baf4 Mon Sep 17 00:00:00 2001
+From: Egor Ignatov <egori@altlinux.org>
+Date: Mon, 10 Jul 2023 21:19:50 +0300
+Subject: [PATCH] alt: use uuid for luks device
+
+---
+ util/grub.d/10_linux.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/util/grub.d/10_linux.in b/util/grub.d/10_linux.in
+index 666947fa0c..702aed9557 100644
+--- a/util/grub.d/10_linux.in
++++ b/util/grub.d/10_linux.in
+@@ -53,7 +53,7 @@ if ( [ "x${GRUB_DEVICE_UUID}" = "x" ] && [ "x${GRUB_DEVICE_PARTUUID}" = "x" ] )
+ 	&& [ "x${GRUB_DISABLE_LINUX_PARTUUID}" = "xtrue" ] ) \
+     || ( ! findfs UUID="${GRUB_DEVICE_UUID}" > /dev/null 2>&1 \
+ 	&& ! findfs PARTUUID="${GRUB_DEVICE_PARTUUID}" > /dev/null 2>&1 ) \
+-    || ( test -e "${GRUB_DEVICE}" && uses_abstraction "${GRUB_DEVICE}" lvm ); then
++    || ( test -e "${GRUB_DEVICE}" && uses_abstraction "${GRUB_DEVICE}" lvm && ! uses_abstraction "${GRUB_DEVICE}" luks ); then
+   LINUX_ROOT_DEVICE=${GRUB_DEVICE}
+ elif [ "x${GRUB_DEVICE_UUID}" = "x" ] \
+     || [ "x${GRUB_DISABLE_LINUX_UUID}" = "xtrue" ]; then
+-- 
+2.42.1
+

@@ -1,0 +1,47 @@
+From 4a60348521304c2b9c242612068aee390d399b5f Mon Sep 17 00:00:00 2001
+From: Robbie Harwood <rharwood@redhat.com>
+Date: Thu, 18 Aug 2022 13:50:13 -0400
+Subject: [PATCH] efi: Don't display a uefi-firmware entry if it's not
+ supported
+
+Add a new --is-supported option to commands/efi/efifwsetup and
+conditionalize display on it.
+
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ grub-core/commands/efi/efifwsetup.c | 3 +++
+ util/grub.d/30_uefi-firmware.in     | 3 ++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/grub-core/commands/efi/efifwsetup.c b/grub-core/commands/efi/efifwsetup.c
+index ef4c3bfc2e..63afe00b48 100644
+--- a/grub-core/commands/efi/efifwsetup.c
++++ b/grub-core/commands/efi/efifwsetup.c
+@@ -40,6 +40,9 @@ grub_cmd_fwsetup (grub_command_t cmd __attribute__ ((unused)),
+   grub_size_t oi_size;
+   grub_efi_guid_t global = GRUB_EFI_GLOBAL_VARIABLE_GUID;
+ 
++  if (argc >= 1 && grub_strcmp(args[0], "--is-supported") == 0)
++    return !efifwsetup_is_supported ();
++
+   if (!efifwsetup_is_supported ())
+ 	  return grub_error (GRUB_ERR_INVALID_COMMAND,
+ 			     N_("reboot to firmware setup is not supported by the current firmware"));
+diff --git a/util/grub.d/30_uefi-firmware.in b/util/grub.d/30_uefi-firmware.in
+index b6041b55e2..c1731e5bbb 100644
+--- a/util/grub.d/30_uefi-firmware.in
++++ b/util/grub.d/30_uefi-firmware.in
+@@ -31,7 +31,8 @@ LABEL="UEFI Firmware Settings"
+ gettext_printf "Adding boot menu entry for UEFI Firmware Settings ...\n" >&2
+ 
+ cat << EOF
+-if [ "\$grub_platform" = "efi" ]; then
++fwsetup --is-supported
++if [ "\$grub_platform" = "efi" -a "\$?" = 0 ]; then
+ 	menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
+ 		fwsetup
+ 	}
+-- 
+2.42.1
+

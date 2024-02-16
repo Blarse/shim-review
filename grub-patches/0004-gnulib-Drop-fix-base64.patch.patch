@@ -1,0 +1,144 @@
+From c7ee3748c437dd01590842c61d4e40c194cfe039 Mon Sep 17 00:00:00 2001
+From: Robbie Harwood <rharwood@redhat.com>
+Date: Tue, 15 Mar 2022 14:05:40 -0400
+Subject: [PATCH] gnulib: Drop fix-base64.patch
+
+Originally added in commit 9fbdec2f (bootstrap: Add gnulib's base64
+module) and subsequently modified in commit 552c9fd08 (gnulib: Fix build
+of base64 when compiling with memory debugging), fix-base64.patch
+handled two problems we have using gnulib, which are exercised by the
+base64 module but not directly caused by it.
+
+First, GRUB defines its own bool type, while gnulib expects the
+equivalent of stdbool.h to be present. Rather than patching gnulib,
+instead use gnulib's stdbool module to provide a bool type if needed
+(suggested by Simon Josefsson).
+
+Second, our config.h doesn't always inherit config-util.h, which is
+where gnulib-related options like _GL_ATTRIBUTE_CONST end up.
+fix-base64.h worked around this by defining the attribute away, but this
+workaround is better placed in config.h itself, not a gnulib patch.
+
+Signed-off-by: Robbie Harwood <rharwood@redhat.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ bootstrap.conf                                |  3 ++-
+ conf/Makefile.extra-dist                      |  1 -
+ config.h.in                                   |  4 ++++
+ grub-core/lib/gnulib-patches/fix-base64.patch | 21 -------------------
+ grub-core/lib/posix_wrap/sys/types.h          |  7 +++----
+ grub-core/lib/xzembed/xz.h                    |  5 +----
+ 6 files changed, 10 insertions(+), 31 deletions(-)
+ delete mode 100644 grub-core/lib/gnulib-patches/fix-base64.patch
+
+diff --git a/bootstrap.conf b/bootstrap.conf
+index 6b043fc354..2384701bc5 100644
+--- a/bootstrap.conf
++++ b/bootstrap.conf
+@@ -35,6 +35,7 @@ gnulib_modules="
+   realloc-gnu
+   regex
+   save-cwd
++  stdbool
+ "
+ 
+ gnulib_tool_option_extras="\
+@@ -79,7 +80,7 @@ cp -a INSTALL INSTALL.grub
+ 
+ bootstrap_post_import_hook () {
+   set -e
+-  for patchname in fix-base64 fix-null-deref fix-null-state-deref fix-regcomp-uninit-token \
++  for patchname in fix-null-deref fix-null-state-deref fix-regcomp-uninit-token \
+       fix-regexec-null-deref fix-uninit-structure fix-unused-value fix-width no-abort; do
+     patch -d grub-core/lib/gnulib -p2 \
+       < "grub-core/lib/gnulib-patches/$patchname.patch"
+diff --git a/conf/Makefile.extra-dist b/conf/Makefile.extra-dist
+index 8f1485d52a..15a9b74e94 100644
+--- a/conf/Makefile.extra-dist
++++ b/conf/Makefile.extra-dist
+@@ -28,7 +28,6 @@ EXTRA_DIST += grub-core/gensymlist.sh
+ EXTRA_DIST += grub-core/genemuinit.sh
+ EXTRA_DIST += grub-core/genemuinitheader.sh
+ 
+-EXTRA_DIST += grub-core/lib/gnulib-patches/fix-base64.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-deref.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-null-state-deref.patch
+ EXTRA_DIST += grub-core/lib/gnulib-patches/fix-regcomp-uninit-token.patch
+diff --git a/config.h.in b/config.h.in
+index 1c8c05b9c2..965eaffce8 100644
+--- a/config.h.in
++++ b/config.h.in
+@@ -64,4 +64,8 @@
+ 
+ #  define _GNU_SOURCE 1
+ 
++#  ifndef _GL_INLINE_HEADER_BEGIN
++#    define _GL_ATTRIBUTE_CONST __attribute__ ((const))
++#  endif /* !_GL_INLINE_HEADER_BEGIN */
++
+ #endif
+diff --git a/grub-core/lib/gnulib-patches/fix-base64.patch b/grub-core/lib/gnulib-patches/fix-base64.patch
+deleted file mode 100644
+index 985db12797..0000000000
+--- a/grub-core/lib/gnulib-patches/fix-base64.patch
++++ /dev/null
+@@ -1,21 +0,0 @@
+-diff --git a/lib/base64.h b/lib/base64.h
+-index 9cd0183b8..185a2afa1 100644
+---- a/lib/base64.h
+-+++ b/lib/base64.h
+-@@ -21,8 +21,14 @@
+- /* Get size_t. */
+- # include <stddef.h>
+- 
+--/* Get bool. */
+--# include <stdbool.h>
+-+#ifndef GRUB_POSIX_BOOL_DEFINED
+-+typedef enum { false = 0, true = 1 } bool;
+-+#define GRUB_POSIX_BOOL_DEFINED 1
+-+#endif
+-+
+-+#ifndef _GL_ATTRIBUTE_CONST
+-+# define _GL_ATTRIBUTE_CONST /* empty */
+-+#endif
+- 
+- # ifdef __cplusplus
+- extern "C" {
+diff --git a/grub-core/lib/posix_wrap/sys/types.h b/grub-core/lib/posix_wrap/sys/types.h
+index 854eb0122e..eeda543c47 100644
+--- a/grub-core/lib/posix_wrap/sys/types.h
++++ b/grub-core/lib/posix_wrap/sys/types.h
+@@ -23,11 +23,10 @@
+ 
+ #include <stddef.h>
+ 
++/* Provided by gnulib if not present. */
++#include <stdbool.h>
++
+ typedef grub_ssize_t ssize_t;
+-#ifndef GRUB_POSIX_BOOL_DEFINED
+-typedef enum { false = 0, true = 1 } bool;
+-#define GRUB_POSIX_BOOL_DEFINED 1
+-#endif
+ 
+ typedef grub_uint8_t uint8_t;
+ typedef grub_uint16_t uint16_t;
+diff --git a/grub-core/lib/xzembed/xz.h b/grub-core/lib/xzembed/xz.h
+index f7b32d8003..d1417039aa 100644
+--- a/grub-core/lib/xzembed/xz.h
++++ b/grub-core/lib/xzembed/xz.h
+@@ -29,10 +29,7 @@
+ #include <unistd.h>
+ #include <string.h>
+ #include <grub/misc.h>
+-
+-#ifndef GRUB_POSIX_BOOL_DEFINED
+-typedef enum { false = 0, true = 1 } bool;
+-#endif
++#include <stdbool.h>
+ 
+ /**
+  * enum xz_ret - Return codes
+-- 
+2.42.1
+

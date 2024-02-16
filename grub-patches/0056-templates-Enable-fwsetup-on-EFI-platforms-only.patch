@@ -1,0 +1,40 @@
+From bf5d2a20cba4b07a12d9f9dcaeba238c64a90c56 Mon Sep 17 00:00:00 2001
+From: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Date: Tue, 29 Nov 2022 22:13:27 +0000
+Subject: [PATCH] templates: Enable fwsetup on EFI platforms only
+
+Only perform call to fwsetup if one is on EFI platform. On all other
+platforms fwsetup command does not exists, and thus returns 0 and
+a useless uefi-firmware menu entry gets generated.
+
+Signed-off-by: Dimitri John Ledkov <dimitri.ledkov@canonical.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+---
+ util/grub.d/30_uefi-firmware.in | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/util/grub.d/30_uefi-firmware.in b/util/grub.d/30_uefi-firmware.in
+index c1731e5bbb..1c2365ddbd 100644
+--- a/util/grub.d/30_uefi-firmware.in
++++ b/util/grub.d/30_uefi-firmware.in
+@@ -31,10 +31,12 @@ LABEL="UEFI Firmware Settings"
+ gettext_printf "Adding boot menu entry for UEFI Firmware Settings ...\n" >&2
+ 
+ cat << EOF
+-fwsetup --is-supported
+-if [ "\$grub_platform" = "efi" -a "\$?" = 0 ]; then
+-	menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
+-		fwsetup
+-	}
++if [ "\$grub_platform" = "efi" ]; then
++	fwsetup --is-supported
++	if [ "\$?" = 0 ]; then
++		menuentry '$LABEL' \$menuentry_id_option 'uefi-firmware' {
++			fwsetup
++		}
++	fi
+ fi
+ EOF
+-- 
+2.42.1
+

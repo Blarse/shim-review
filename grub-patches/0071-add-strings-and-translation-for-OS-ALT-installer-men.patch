@@ -1,0 +1,161 @@
+From 163979d737d570544f4ac0b05c4c594f7ca52ce6 Mon Sep 17 00:00:00 2001
+From: Ivan Razzhivin <underwit@altlinux.org>
+Date: Fri, 5 Feb 2021 17:47:27 +0300
+Subject: [PATCH] add strings and translation for OS ALT installer menu
+
+---
+ po/LINGUAS               |  2 +
+ po/grub.pot              |  0
+ po/ru.po                 | 89 ++++++++++++++++++++++++++++++++++++++++
+ util/grub.d/42_custom.in | 26 ++++++++++++
+ 4 files changed, 117 insertions(+)
+ create mode 100644 po/LINGUAS
+ create mode 100644 po/grub.pot
+ create mode 100644 util/grub.d/42_custom.in
+
+diff --git a/po/LINGUAS b/po/LINGUAS
+new file mode 100644
+index 0000000000..50ea52b246
+--- /dev/null
++++ b/po/LINGUAS
+@@ -0,0 +1,2 @@
++ru
++
+diff --git a/po/grub.pot b/po/grub.pot
+new file mode 100644
+index 0000000000..e69de29bb2
+diff --git a/po/ru.po b/po/ru.po
+index 80fb334273..cf0c08b545 100644
+--- a/po/ru.po
++++ b/po/ru.po
+@@ -6307,6 +6307,95 @@ msgstr "некорректный список блоков"
+ msgid "blocklists are incomplete"
+ msgstr "незавершённый список блоков"
+ 
++#: util/grub.d/42_custom.in:4
++msgid "Install "
++msgstr "Установить "
++
++#: util/grub.d/42_custom.in:5
++msgid "VNC install "
++msgstr ""
++"Установить через VNC "
++
++#: util/grub.d/42_custom.in:6
++msgid ""
++" (edit to set server IP address)"
++msgstr ""
++" (установите IP адрес сервера)"
++
++#: util/grub.d/42_custom.in:7
++msgid ""
++" (edit to set password and connect here)"
++msgstr ""
++" (измените пароль и соединение здесь)"
++
++#: util/grub.d/42_custom.in:8
++msgid "LiveCD (no hard disk needed)"
++msgstr "LiveCD (жёсткий диск не нужен)"
++
++#: util/grub.d/42_custom.in:9
++msgid "LiveCD with sessions support"
++msgstr "LiveCD с поддержкой сеансов"
++
++#: util/grub.d/42_custom.in:10
++msgid "Loading Linux vmlinuz$KFLAVOUR ..."
++msgstr "Загрузка Linux vmlinuz$KFLAVOUR ..."
++
++#: util/grub.d/42_custom.in:12
++msgid "Return to the Main menu"
++msgstr "Вернуться в главное меню"
++
++#: util/grub.d/42_custom.in:13
++msgid "Rescue LiveCD"
++msgstr "Спасательный LiveCD"
++
++#: util/grub.d/42_custom.in:14
++msgid "Rescue with sessions support"
++msgstr "Спасательный LiveCD с поддержкой сессии"
++
++#: util/grub.d/42_custom.in:15
++msgid "Forensic mode (leave disks alone)"
++msgstr "Экспертный режим отладки (оставьте диски в покое)"
++
++#: util/grub.d/42_custom.in:16
++msgid "Rescue with remote SSH access (DHCP)"
++msgstr "Спасательный LiveCD с удалённым доступом по SSH (DHCP)"
++
++#: util/grub.d/42_custom.in:17
++msgid "Check this media for defects"
++msgstr "Проверить носитель на наличие дефектов"
++
++#: util/grub.d/42_custom.in:18
++msgid "Change Kernel Flavour (press F5)"
++msgstr "Выбрать ядро (нажмите F5)"
++
++#: util/grub.d/42_custom.in:19
++msgid "Memory Test"
++msgstr "Тест памяти"
++
++#: util/grub.d/42_custom.in:20
++msgid "System setup"
++msgstr "Настройка системы"
++
++#: util/grub.d/42_custom.in:21
++msgid "Install"
++msgstr "Установка"
++
++#: util/grub.d/42_custom.in:22
++msgid "Hardware Info"
++msgstr "Информация об оборудовании"
++
++#: util/grub.d/42_custom.in:23
++msgid "Boot from hard drive"
++msgstr "Загрузка с жёсткого диска"
++
++#: util/grub.d/42_custom.in:24
++msgid "Boot from 1st hard/flash drive"
++msgstr "Загрузка с 1-го жёсткого/флеш диска"
++
++#: util/grub.d/42_custom.in:25
++msgid "Boot from 2nd hard/flash drive"
++msgstr "Загрузка со 2-го жёсткого/флеш диска"
++
+ #~ msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+ #~ msgstr "%.*s: значение параметра ARGP_HELP_FMT должно быть положительным"
+ 
+diff --git a/util/grub.d/42_custom.in b/util/grub.d/42_custom.in
+new file mode 100644
+index 0000000000..5b4982422e
+--- /dev/null
++++ b/util/grub.d/42_custom.in
+@@ -0,0 +1,26 @@
++#! /bin/sh
++set -e
++
++gettext_printf "Install "
++gettext_printf "VNC install "
++gettext_printf " (edit to set server IP address)"
++gettext_printf " (edit to set password and connect here)"
++gettext_printf "LiveCD (no hard disk needed)"
++gettext_printf "LiveCD with sessions support"
++gettext_printf "Loading Linux vmlinuz\$KFLAVOUR ..."
++gettext_printf "Loading initial ramdisk ..."
++gettext_printf "Return to the Main menu"
++gettext_printf "Rescue LiveCD"
++gettext_printf "Rescue with sessions support"
++gettext_printf "Forensic mode (leave disks alone)"
++gettext_printf "Rescue with remote SSH access (DHCP)"
++gettext_printf "Check this media for defects"
++gettext_printf "Change Kernel Flavour (press F5)"
++gettext_printf "Memory Test"
++gettext_printf "System setup"
++gettext_printf "Install"
++gettext_printf "LiveCD with sessions support"
++gettext_printf "Hardware Info"
++gettext_printf "Boot from hard drive"
++gettext_printf "Boot from 1st hard/flash drive"
++gettext_printf "Boot from 2nd hard/flash drive"
+-- 
+2.42.1
+
