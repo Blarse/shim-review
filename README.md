@@ -259,7 +259,7 @@ grub
 ```
 sbat,1,SBAT Version,sbat,1,https://github.com/rhboot/shim/blob/main/SBAT.md
 grub,4,Free Software Foundation,grub,2.06,https://www.gnu.org/software/grub/
-grub.altlinux,1,ALT Linux,grub,2.06-alt17,http://git.altlinux.org/gears/g/grub.git
+grub.altlinux,1,ALT Linux,grub,2.06-alt18,http://git.altlinux.org/gears/g/grub.git
 ```
 
 fwupd
